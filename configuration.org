@@ -6,9 +6,13 @@
 #+begin_src elisp 
   (setq gc-cons-threshold 10000000000)
   (setq exec-path (cons "/opt/homebrew/bin" exec-path))
+  (setq exec-path (cons "/usr/local/bin" exec-path))
+  (setq exec-path (cons "/Users/SeungheonOh/bin" exec-path))
   (setq exec-path (cons "/Library/TeX/texbin" exec-path))
   (setenv "PATH"  (concat (getenv "PATH") ":/Library/TeX/texbin" ))
+  (setenv "PATH"  (concat (getenv "PATH") ":/usr/local/bin" ))
   (setenv "PATH"  (concat (getenv "PATH") ":/opt/homebrew/bin" ))
+    (setenv "PATH"  (concat (getenv "PATH") ":/Users/SeungheonOh/bin" ))
 #+end_src
 #+begin_src elisp
   (defun oh/startup-time ()
@@ -57,7 +61,7 @@
 #+begin_src elisp
   (global-set-key [f1] #'previous-buffer)
   (global-set-key [f2] #'next-buffer)
-  (global-set-key [f5] #'compile)
+  (global-set-key [f5] #'recompile)
 
   (global-set-key (kbd "C-c a") (lambda () (interactive) (org-agenda nil "w")))
 #+end_src
@@ -84,8 +88,8 @@
    '(variable-pitch ((t (:family "ETBembo" :height 250))))
    '(fixed-pitch ((t ( :family "Roboto Mono" :height 240)))))
   ;; line numbers
-  ;;(column-number-mode)
-  ;;(global-display-line-numbers-mode t)
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
 
   (dolist (mode '(org-mode-hook
                   term-mode-hook
@@ -93,6 +97,12 @@
                   xwidget-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  (setq redisplay-dont-pause t
+        scroll-margin 1
+        scroll-step 1
+        scroll-conservatively 10000
+        scroll-preserve-screen-position 1)
 #+end_src
 * Straight.el
 #+begin_src elisp
@@ -129,7 +139,7 @@
   (gcmh-mode 1)
 #+end_src
 
-* Completion Framework
+* Compnletion Framework
 ** Selectrum
 #+begin_src elisp
   (straight-use-package 'selectrum)
@@ -219,6 +229,45 @@
   (setq recentf-max-saved-items 25)
 #+end_src
 
+** Company [disabled, Corfu]
+:PROPERTIES:
+:header-args: tangle: no
+:END:
+#+begin_src elisp
+  (straight-use-package 'company)
+
+  (require 'company)
+
+  (setq company-minimum-prefix-length 2)
+  (setq company-idle-delay 0.25)
+  (custom-set-faces
+   '(company-tooltip ((t (:inherit fixed-pitch)))))
+  (add-hook 'after-init-hook 'global-company-mode)
+  (add-to-list 'company-backends 'company-capf)
+#+end_src
+** Corfu
+Don't know how to get auto tigger work
+#+begin_src elisp
+  (straight-use-package 'corfu)
+  (straight-use-package 'cape)
+
+  (setq corfu-auto t)
+  (setq corfu-auto-delay 0.3)
+  (setq corfu-quit-at-boundary nil)
+  (corfu-global-mode)
+
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-tex)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-sgml)
+  (add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-ispell)
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  (add-to-list 'completion-at-point-functions #'cape-line)
+#+end_src
 * Evil - Moved to Vanilla Bindings!
 :PROPERTIES:
 :header-args: tangle: no
@@ -294,6 +343,11 @@
   (setq alert-default-style 'notifier)
 #+end_src
 * Org
+** Download
+#+begin_src elisp
+  (straight-use-package 'org-download)
+  (require 'org-download)
+#+end_src
 ** Org
 #+begin_src elisp
   (straight-use-package 'org)
@@ -320,13 +374,20 @@
 
   (setq org-tags-column 0)
 
+  (setq org-image-actual-width 250)
+
   (defun oh/org-mode ()
     (org-indent-mode)
     (variable-pitch-mode 1)
     (visual-line-mode 1)
     (setq visual-fill-column-width 140
           visual-fill-column-center-text t)
-    (visual-fill-column-mode))
+    (visual-fill-column-mode)
+    (auto-fill-mode)
+    (setq org-download-method 'directory)
+    (setq org-download-image-dir "./resources")
+    (setq org-download-screenshot-method "/opt/homebrew/bin/pngpaste")
+    (org-download-enable))
 
   (defun oh/org-font ()
     (let* ((variable-tuple
@@ -377,25 +438,16 @@
   (add-hook 'org-mode-hook #'oh/org-mode)
   (setq auto-mode-alist (append auto-mode-alist '(("\\.org\\'" . org-mode))))
 #+end_src
+** Beamer
+#+begin_src elisp
+  (require 'ox-beamer)
+#+end_src
 ** Capture
 #+begin_src elisp
   (setq org-capture-templates
         `())
 #+end_src
-** Babel
-#+begin_src elisp
-  ;; org babel
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((C           . t)
-     (haskell     . t)
-     (python      . t)
-     (java        . t)
-     (shell       . t)
-     (emacs-lisp  . t)))
-
-  (setq org-confirm-babel-evaluate nil)
-#+end_src
+** Babe
 ** Roam
 *** Settings
 #+begin_src elisp
@@ -574,6 +626,13 @@
 
           ))
 #+end_src
+** Reveal
+#+begin_src elisp
+  (straight-use-package 'ox-reveal)
+  (straight-use-package 'htmlize)
+  (require 'ox-reveal)
+  (require 'htmlize)
+#+end_src
 ** Org-Alert
 :PROPERTIES:
 :header-args: tangle: no
@@ -647,6 +706,38 @@
 ** Web Mode
 #+begin_src elisp
   (straight-use-package 'web-mode)
+#+end_src
+** OCAML
+#+begin_src elisp
+  (load
+     "/Users/seungheonoh/.opam/default/share/emacs/site-lisp/tuareg-site-file")
+#+end_src
+** TypeScript
+#+begin_src elisp
+  (straight-use-package 'tide)
+  
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
+    ;; company is an optional dependency. You have to
+    ;; install it separately via package-install
+    ;; `M-x package-install [ret] company`
+
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+#+end_src
+** Koka
+#+begin_src elisp
+  (load "/Users/seungheonoh/.emacs.d/others/koka-mode.el")
 #+end_src
 * Eshell
 #+begin_src elisp
@@ -802,45 +893,52 @@
   (global-set-key (kbd "C-c w t") 'oh/translate)
   (global-set-key (kbd "C-c w v") 'oh/new-vocab)
 #+end_src
+* Buffer Settings
+** Compilation
+#+begin_src elisp
+  (straight-use-package 'ansi-color)
+  (require 'ansi-color)
+  (defun my/ansi-colorize-buffer ()
+    (let ((buffer-read-only nil))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+  (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
+
+  (setq compilation-scroll-output t)
+  (push '("\\*compilation\\*" . (nil (reusable-frames . t))) display-buffer-alist)
+  (defadvice recompile (after recompile-advice activate) 
+    (other-frame 1))
+
+  ; from enberg on #emacs
+  (defun oh/compilation-autoclose (buf str)
+    (if (null (string-match ".*exited abnormally.*" str))
+        ;;no errors, make the compilation window go away in a few seconds
+        (progn
+          (run-at-time
+           "1 sec" nil 'delete-windows-on
+           (get-buffer-create "*compilation*"))
+          (message "No Compilation Errors!"))))
+
+  (defun oh/compilation-open ()
+    (interactive)
+    (let ((buf (get-buffer "*compilation*")))
+      (cond (buf (switch-to-buffer buf))
+            (t (message "*compilation* not found")))))
+
+  (global-set-key (kbd "C-<f5>") #'oh/compilation-open)
+  (add-hook 'compilation-finish-functions #'oh/compilation-autoclose)
+
+  (defun oh/compile-in-other-frame ()
+    (interactive)
+    (let ((buf (get-buffer "*compilation*")))
+      (cond (buf
+             (clone-frame)
+             (switch-to-buffer buf)
+             (remove-hook 'compilation-finish-functions #'oh/compilation-autoclose)
+             (other-frame -1))
+            (t (message "*compilation* not found")))))
+#+end_src
 * Packages
 Category for packages that does not have significant configurations
-** Company
-#+begin_src elisp
-  (straight-use-package 'company)
-
-  (require 'company)
-
-  (setq company-minimum-prefix-length 2)
-  (setq company-idle-delay 0.25)
-  (custom-set-faces
-   '(company-tooltip ((t (:inherit fixed-pitch)))))
-  (add-hook 'after-init-hook 'global-company-mode)
-  (add-to-list 'company-backends 'company-capf)
-#+end_src
-** Corfu - Alternative to Company
-:PROPERTIES:
-:header-args: tangle: no
-:END:
-Doesn't work neatly with LSP
-Don't know how to get auto tigger work
-#+begin_src elisp
-  (straight-use-package 'corfu)
-  (straight-use-package 'cape)
-
-  (corfu-global-mode)
-
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-tex)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-sgml)
-  (add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  (add-to-list 'completion-at-point-functions #'cape-abbrev)
-  (add-to-list 'completion-at-point-functions #'cape-ispell)
-  (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-line)
-#+end_src
 ** Magit
 #+begin_src elisp
   (straight-use-package 'magit)
@@ -862,6 +960,13 @@ Don't know how to get auto tigger work
 #+begin_src elisp
   (straight-use-package 'elcord)
   ;;(elcord-mode)
+#+end_src
+** Elfeed
+#+begin_src elisp
+  (straight-use-package 'elfeed)
+  (setq elfeed-feeds
+        '("https://news.ycombinator.com/rss"
+          "https://seungheonoh.github.io/rss.xml"))
 #+end_src
 * Appearance
 ** Mini Frame
@@ -900,5 +1005,4 @@ Don't know how to get auto tigger work
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'oh/auto-tangle)))
 #+end_src
-
 
