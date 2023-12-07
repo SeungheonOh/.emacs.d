@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: OrgStart
+# key: orgstart
+# --
+#+title: $1
+#+author: Seungheon Oh
+
+$0

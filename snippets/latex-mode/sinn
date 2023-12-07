@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: sinn
+# key: sinn
+# --
+\sin^{$1}{$2} $0

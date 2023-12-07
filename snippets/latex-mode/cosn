@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: cosn
+# key: cosn
+# --
+\cos^{$1}{$2} $0
